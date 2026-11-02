@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("homeowner") // homeowner | sales | admin
+  phone     String?
+  createdAt DateTime @default(now())
+  leads     Lead[]
+  quotes    Quote[]
+}
+
+model Lead {
+  id              String   @id @default(uuid())
+  leadId          String   @unique
+  name            String
+  email           String?
+  phone           String
+  pincode         String
+  ownerOrTenant   String   // owner | tenant
+  roofType        String   // flat | sloped | mixed
+  roofArea        Float
+  monthlyBill     Float
+  avgUnits        Float?
+  billPhotoPath   String?
+  // AI extracted
+  consumerNumber  String?
+  tariff          String?
+  sanctionedLoad  Float?
+  aiUnits         Float?
+  aiConfidence    Float?
+  aiRawResponse   String?
+  aiConfirmed     Boolean  @default(false)
+  // Scoring
+  score           String?  // High | Medium | Low
+  scoreReason     String?
+  recommendedKw   Float?
+  // Status
+  status          String   @default("new") // new | contacted | surveyed | quoted | converted | lost
+  assignedTo      String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  quotes          Quote[]
+  project         Project?
+}
+
+model Quote {
+  id              String   @id @default(uuid())
+  quoteNumber     String   @unique
+  leadId          String
+  lead            Lead     @relation(fields: [leadId], references: [id])
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+  systemSizeKw    Float
+  panelCount      Int
+  panelWatt       Int
+  inverterKw      Float
+  baseCost        Float
+  subsidyAmount   Float
+  netCost         Float
+  yearlyGeneration Float
+  yearlyBillSaving Float
+  paybackYears    Float
+  subsidyRuleId   String?
+  subsidyRule     SubsidyRule? @relation(fields: [subsidyRuleId], references: [id])
+  pdfPath         String?
+  status          String   @default("draft") // draft | sent | accepted | rejected
+  validUntil      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Project {
+  id              String   @id @default(uuid())
+  projectId       String   @unique
+  leadId          String   @unique
+  lead            Lead     @relation(fields: [leadId], references: [id])
+  status          String   @default("advance_pending") 
+  // advance_pending | advance_paid | survey_done | design_approved | installation | net_metering | subsidy_applied | subsidy_credited | completed
+  advancePaid     Boolean  @default(false)
+  advanceDate     DateTime?
+  installDate     DateTime?
+  netMeteringDate DateTime?
+  subsidyApplied  Boolean  @default(false)
+  subsidyDate     DateTime?
+  subsidyCredited Boolean  @default(false)
+  subsidyCreditDate DateTime?
+  customerToken   String   @unique
+  notes           String?
+  documents       Document[]
+  statusHistory   StatusHistory[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  name        String
+  filePath    String
+  docType     String   // advance_receipt | survey_report | design | installation_photo | net_metering | subsidy_proof
+  uploadedAt  DateTime @default(now())
+}
+
+model StatusHistory {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  fromStatus  String
+  toStatus    String
+  note        String?
+  changedAt   DateTime @default(now())
+}
+
+model SubsidyRule {
+  id            String   @id @default(uuid())
+  name          String
+  category      String   // residential | commercial
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  slabs         String   // JSON string: [{upToKw, ratePerKw}]
+  maxSubsidy    Float
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  quotes        Quote[]
+}
+
+model PriceConfig {
+  id            String   @id @default(uuid())
+  itemName      String
+  category      String   // panel | inverter | bos | installation | other
+  pricePerUnit  Float
+  unit          String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model GenerationConfig {
+  id            String   @id @default(uuid())
+  unitsPerKwPerYear Float @default(1400)
+  effectiveFrom DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
