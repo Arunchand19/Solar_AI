@@ -1,6 +1,10 @@
 # SolarSmart - Rooftop Solar Lead Qualification & Project Tracker
 
 A full-stack web application for solar installers to qualify leads, generate instant quotes with subsidy calculations, and track projects from advance to completion.
+<img width="1918" height="902" alt="image" src="https://github.com/user-attachments/assets/833955d1-a5e4-4bc4-aea3-29335d437c1b" />
+<img width="1917" height="905" alt="image" src="https://github.com/user-attachments/assets/3ca0361e-2eeb-495f-8cfc-46494c65258a" />
+<img width="1915" height="903" alt="image" src="https://github.com/user-attachments/assets/d237c233-758a-4e74-b678-4727cfe9385c" />
+
 
 ## 🌟 Features
 
